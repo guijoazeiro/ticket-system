@@ -1,16 +1,20 @@
 import { Injectable } from '@nestjs/common';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
-import { PrismaService } from 'src/prisma/prisma.service';
 import { ReserveSpotDto } from './dto/reserve-spot.dto';
 import { Prisma, SpotStatus, TicketStatus } from '@prisma/client';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class EventsService {
   constructor(private prismaService: PrismaService) {}
+
   create(createEventDto: CreateEventDto) {
     return this.prismaService.event.create({
-      data: createEventDto,
+      data: {
+        ...createEventDto,
+        date: new Date(createEventDto.date),
+      },
     });
   }
 
@@ -19,22 +23,25 @@ export class EventsService {
   }
 
   findOne(id: string) {
-    return this.prismaService.event.findUniqueOrThrow({
-      where: {
-        id,
-      },
+    return this.prismaService.event.findUnique({
+      where: { id },
     });
   }
 
   update(id: string, updateEventDto: UpdateEventDto) {
     return this.prismaService.event.update({
-      data: { ...updateEventDto, date: new Date(updateEventDto.date) },
+      data: {
+        ...updateEventDto,
+        date: new Date(updateEventDto.date),
+      },
       where: { id },
     });
   }
 
   remove(id: string) {
-    return this.prismaService.event.delete({ where: { id } });
+    return this.prismaService.event.delete({
+      where: { id },
+    });
   }
 
   async reserveSpot(dto: ReserveSpotDto & { eventId: string }) {
@@ -46,14 +53,14 @@ export class EventsService {
         },
       },
     });
-
     if (spots.length !== dto.spots.length) {
       const foundSpotsName = spots.map((spot) => spot.name);
-      const notFoundSpots = dto.spots.filter(
-        (spotname) => !foundSpotsName.includes(spotname),
+      const notFoundSpotsName = dto.spots.filter(
+        (spotName) => !foundSpotsName.includes(spotName),
       );
-      throw new Error(`Spots ${notFoundSpots.join(', ')} not found`);
+      throw new Error(`Spots ${notFoundSpotsName.join(', ')} not found`);
     }
+
     try {
       const tickets = await this.prismaService.$transaction(
         async (prisma) => {
@@ -88,10 +95,12 @@ export class EventsService {
               }),
             ),
           );
+
           return tickets;
         },
         { isolationLevel: Prisma.TransactionIsolationLevel.ReadCommitted },
       );
+      return tickets;
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
         switch (e.code) {
