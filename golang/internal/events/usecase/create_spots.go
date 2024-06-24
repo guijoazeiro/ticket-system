@@ -56,7 +56,6 @@ func (uc *CreateSpotsUseCase) Execute(input CreateSpotsInputDTO) (*CreateSpotsOu
 }
 
 func generateSpotName(index int) string {
-	// Gera um nome de spot baseado no índice. Ex: A1, A2, ..., B1, B2, etc.
 	letter := 'A' + rune(index/10)
 	number := index%10 + 1
 	return fmt.Sprintf("%c%d", letter, number)

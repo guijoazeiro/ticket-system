@@ -29,9 +29,10 @@ func main() {
 	}
 
 	partnerBaseURLs := map[int]string{
-		1: "http://localhost:9000/api1",
-		2: "http://localhost:9000/api2",
+		1: "http://host.docker.internal:8000/partner1",
+		2: "http://host.docker.internal:8000/partner2",
 	}
+
 	listEventsUseCase := usecase.NewListEventsUseCase(eventRepo)
 	getEventUseCase := usecase.NewGetEventUseCase(eventRepo)
 	createEventUseCase := usecase.NewCreateEventUseCase(eventRepo)

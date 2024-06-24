@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { Title } from "../../../../components/Title";
 import { EventModel } from "../../../../models";
-// queries
+
 export async function getEvent(eventId: string): Promise<EventModel> {
   const response = await fetch(`http://localhost:8080/events/${eventId}`, {
     cache: "no-store",
